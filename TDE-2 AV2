@@ -1,0 +1,172 @@
+import java.io.Serializable;
+import java.io.*;
+import java.util.*;
+
+public class Paciente implements Serializable {
+    private int numero;
+    private double peso;
+    private double altura;
+
+    public Paciente(int numero, double peso, double altura) {
+        this.numero = numero;
+        this.peso = peso;
+        this.altura = altura;
+    }
+
+    public int getNumero() {
+        return numero;
+    }
+
+    public void setNumero(int numero) {
+        this.numero = numero;
+    }
+
+    public double getPeso() {
+        return peso;
+    }
+
+    public void setPeso(double peso) {
+        this.peso = peso;
+    }
+
+    public double getAltura() {
+        return altura;
+    }
+
+    public void setAltura(double altura) {
+        this.altura = altura;
+    }
+
+    public void listarPaciente() {
+        System.out.println("Número: " + numero);
+        System.out.println("Peso: " + peso + " kg");
+        System.out.println("Altura: " + altura + " m");
+    }
+
+    @Override
+    public String toString() {
+        return numero + "," + peso + "," + altura;
+    }
+}
+
+public class Hospital {
+    private static final String FILE_NAME = "pacientes.txt";
+
+    public static void incluirPaciente(Paciente paciente) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME, true))) {
+            writer.write(paciente.toString());
+            writer.newLine();
+        }
+    }
+
+    public static void listarPacientes() throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
+            String linha;
+            while ((linha = reader.readLine()) != null) {
+                String[] dados = linha.split(",");
+                Paciente paciente = new Paciente(
+                        Integer.parseInt(dados[0]),
+                        Double.parseDouble(dados[1]),
+                        Double.parseDouble(dados[2])
+                );
+                paciente.listarPaciente();
+                System.out.println();
+            }
+        }
+    }
+
+    public static void alterarPaciente(int numero, Paciente novoPaciente) throws IOException {
+        List<Paciente> pacientes = carregarPacientes();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
+            for (Paciente paciente : pacientes) {
+                if (paciente.getNumero() == numero) {
+                    writer.write(novoPaciente.toString());
+                } else {
+                    writer.write(paciente.toString());
+                }
+                writer.newLine();
+            }
+        }
+    }
+
+    public static void excluirPaciente(int numero) throws IOException {
+        List<Paciente> pacientes = carregarPacientes();
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_NAME))) {
+            for (Paciente paciente : pacientes) {
+                if (paciente.getNumero() != numero) {
+                    writer.write(paciente.toString());
+                    writer.newLine();
+                }
+            }
+        }
+    }
+
+    public static List<Paciente> carregarPacientes() throws IOException {
+        List<Paciente> pacientes = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_NAME))) {
+            String linha;
+            while ((linha = reader.readLine()) != null) {
+                String[] dados = linha.split(",");
+                Paciente paciente = new Paciente(
+                        Integer.parseInt(dados[0]),
+                        Double.parseDouble(dados[1]),
+                        Double.parseDouble(dados[2])
+                );
+                pacientes.add(paciente);
+            }
+        }
+        return pacientes;
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("1. Incluir paciente");
+            System.out.println("2. Listar pacientes");
+            System.out.println("3. Alterar paciente");
+            System.out.println("4. Excluir paciente");
+            System.out.println("5. Sair");
+            System.out.print("Escolha uma opção: ");
+            int opcao = scanner.nextInt();
+
+            try {
+                switch (opcao) {
+                    case 1:
+                        System.out.print("Número: ");
+                        int numero = scanner.nextInt();
+                        System.out.print("Peso (kg): ");
+                        double peso = scanner.nextDouble();
+                        System.out.print("Altura (m): ");
+                        double altura = scanner.nextDouble();
+                        incluirPaciente(new Paciente(numero, peso, altura));
+                        break;
+                    case 2:
+                        listarPacientes();
+                        break;
+                    case 3:
+                        System.out.print("Número do paciente a alterar: ");
+                        int numAlt = scanner.nextInt();
+                        System.out.print("Novo peso (kg): ");
+                        double novoPeso = scanner.nextDouble();
+                        System.out.print("Nova altura (m): ");
+                        double novaAltura = scanner.nextDouble();
+                        alterarPaciente(numAlt, new Paciente(numAlt, novoPeso, novaAltura));
+                        break;
+                    case 4:
+                        System.out.print("Número do paciente a excluir: ");
+                        int numExc = scanner.nextInt();
+                        excluirPaciente(numExc);
+                        break;
+                    case 5:
+                        System.out.println("Saindo...");
+                        return;
+                    default:
+                        System.out.println("Opção inválida!");
+                }
+            } catch (IOException e) {
+                System.out.println("Erro: " + e.getMessage());
+            }
+        }
+    }
+}
